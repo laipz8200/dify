@@ -271,6 +271,34 @@ class DatasetDocumentListApi(Resource):
     @marshal_with(dataset_and_document_fields)
     @cloud_edition_billing_resource_check("vector_space")
     @cloud_edition_billing_rate_limit_check("knowledge")
+    @api.doc("create_dataset_document")
+    @api.doc(description="Create or import documents into a dataset")
+    @api.doc(params={"dataset_id": "Dataset ID"})
+    @api.expect(
+        api.model(
+            "CreateDatasetDocumentRequest",
+            {
+                "indexing_technique": fields.String(
+                    description="Indexing technique to use when processing documents"
+                ),
+                "data_source": fields.Raw(description="Document data source configuration"),
+                "process_rule": fields.Raw(description="Document processing rules"),
+                "duplicate": fields.Boolean(
+                    description="Whether duplicate documents are allowed when importing"
+                ),
+                "original_document_id": fields.String(description="ID of the original document to duplicate"),
+                "doc_form": fields.String(description="Document form (e.g. text_model, qa)", default="text_model"),
+                "retrieval_model": fields.Raw(description="Retrieval model configuration"),
+                "embedding_model": fields.String(description="Embedding model name"),
+                "embedding_model_provider": fields.String(description="Embedding model provider identifier"),
+                "doc_language": fields.String(description="Primary language of the document"),
+            },
+        )
+    )
+    @api.response(201, "Documents added to dataset successfully", dataset_and_document_fields)
+    @api.response(400, "Invalid request parameters")
+    @api.response(403, "Permission denied")
+    @api.response(404, "Dataset not found")
     def post(self, dataset_id):
         dataset_id = str(dataset_id)
 
@@ -329,6 +357,12 @@ class DatasetDocumentListApi(Resource):
     @login_required
     @account_initialization_required
     @cloud_edition_billing_rate_limit_check("knowledge")
+    @api.doc("delete_dataset_documents")
+    @api.doc(description="Delete documents from a dataset")
+    @api.doc(params={"dataset_id": "Dataset ID", "document_id": "Document IDs to delete (query parameter)"})
+    @api.response(204, "Documents deleted successfully")
+    @api.response(400, "Document cannot be deleted while indexing")
+    @api.response(404, "Dataset not found")
     def delete(self, dataset_id):
         dataset_id = str(dataset_id)
         dataset = DatasetService.get_dataset(dataset_id)
@@ -1024,6 +1058,20 @@ class DocumentRetryApi(DocumentResource):
     @login_required
     @account_initialization_required
     @cloud_edition_billing_rate_limit_check("knowledge")
+    @api.doc("retry_dataset_documents")
+    @api.doc(description="Retry processing for failed or paused documents in a dataset")
+    @api.doc(params={"dataset_id": "Dataset ID"})
+    @api.expect(
+        api.model(
+            "RetryDatasetDocumentsRequest",
+            {
+                "document_ids": fields.List(fields.String, required=True, description="Document IDs to retry"),
+            },
+        )
+    )
+    @api.response(204, "Documents scheduled for retry successfully")
+    @api.response(400, "One or more documents cannot be retried")
+    @api.response(404, "Dataset or document not found")
     def post(self, dataset_id):
         """retry document."""
 
@@ -1068,6 +1116,20 @@ class DocumentRenameApi(DocumentResource):
     @login_required
     @account_initialization_required
     @marshal_with(document_fields)
+    @api.doc("rename_dataset_document")
+    @api.doc(description="Rename a document in a dataset")
+    @api.doc(params={"dataset_id": "Dataset ID", "document_id": "Document ID"})
+    @api.expect(
+        api.model(
+            "RenameDatasetDocumentRequest",
+            {
+                "name": fields.String(required=True, description="New document name"),
+            },
+        )
+    )
+    @api.response(200, "Document renamed successfully", document_fields)
+    @api.response(403, "Permission denied")
+    @api.response(404, "Dataset or document not found")
     def post(self, dataset_id, document_id):
         # The role of the current user in the ta table must be admin, owner, editor, or dataset_operator
         if not current_user.is_dataset_editor:

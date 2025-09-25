@@ -392,6 +392,13 @@ class DatasetApi(Resource):
     @login_required
     @account_initialization_required
     @cloud_edition_billing_rate_limit_check("knowledge")
+    @api.doc("delete_dataset")
+    @api.doc(description="Delete a dataset and clear related permissions")
+    @api.doc(params={"dataset_id": "Dataset ID"})
+    @api.response(204, "Dataset deleted successfully")
+    @api.response(403, "Insufficient permissions")
+    @api.response(404, "Dataset not found")
+    @api.response(409, "Dataset is in use and cannot be deleted")
     def delete(self, dataset_id):
         dataset_id_str = str(dataset_id)
 
@@ -676,6 +683,11 @@ class DatasetApiKeyApi(Resource):
     @login_required
     @account_initialization_required
     @marshal_with(api_key_fields)
+    @api.doc("create_dataset_api_key")
+    @api.doc(description="Create a new dataset API key")
+    @api.response(201, "API key created successfully", api_key_fields)
+    @api.response(400, "Maximum number of API keys reached")
+    @api.response(403, "Insufficient permissions")
     def post(self):
         # The role of the current user in the ta table must be admin or owner
         if not current_user.is_admin_or_owner:
@@ -701,7 +713,7 @@ class DatasetApiKeyApi(Resource):
         api_token.type = self.resource_type
         db.session.add(api_token)
         db.session.commit()
-        return api_token, 200
+        return api_token, 201
 
 
 @console_ns.route("/datasets/api-keys/<uuid:api_key_id>")

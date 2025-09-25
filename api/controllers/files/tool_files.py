@@ -13,6 +13,22 @@ from extensions.ext_database import db as global_db
 
 @files_ns.route("/tools/<uuid:file_id>.<string:extension>")
 class ToolFileApi(Resource):
+    @files_ns.doc("download_tool_file")
+    @files_ns.doc(description="Download a tool file using a signed URL")
+    @files_ns.doc(
+        params={
+            "file_id": "Tool file ID",
+            "extension": "Expected file extension",
+            "timestamp": "Signature timestamp",
+            "nonce": "Signature nonce",
+            "sign": "HMAC signature for validation",
+            "as_attachment": "Return the file as an attachment when true",
+        }
+    )
+    @files_ns.response(200, "File streamed successfully")
+    @files_ns.response(400, "Invalid request parameters")
+    @files_ns.response(403, "Signature validation failed")
+    @files_ns.response(404, "File not found")
     def get(self, file_id, extension):
         file_id = str(file_id)
 

@@ -56,6 +56,20 @@ class ExternalApiTemplateListApi(Resource):
     @setup_required
     @login_required
     @account_initialization_required
+    @api.doc("create_external_api_template")
+    @api.doc(description="Create a new external knowledge API template")
+    @api.expect(
+        api.model(
+            "CreateExternalApiTemplateRequest",
+            {
+                "name": fields.String(required=True, description="Template name (1-100 characters)"),
+                "settings": fields.Raw(required=True, description="External API configuration settings"),
+            },
+        )
+    )
+    @api.response(201, "External knowledge API template created successfully")
+    @api.response(400, "Invalid request parameters")
+    @api.response(403, "Permission denied")
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument(
@@ -111,6 +125,20 @@ class ExternalApiTemplateApi(Resource):
     @setup_required
     @login_required
     @account_initialization_required
+    @api.doc("update_external_api_template")
+    @api.doc(description="Update an external knowledge API template")
+    @api.doc(params={"external_knowledge_api_id": "External knowledge API ID"})
+    @api.expect(
+        api.model(
+            "UpdateExternalApiTemplateRequest",
+            {
+                "name": fields.String(required=True, description="Template name (1-100 characters)"),
+                "settings": fields.Raw(required=True, description="External API configuration settings"),
+            },
+        )
+    )
+    @api.response(200, "External knowledge API template updated successfully")
+    @api.response(404, "Template not found")
     def patch(self, external_knowledge_api_id):
         external_knowledge_api_id = str(external_knowledge_api_id)
 
@@ -144,6 +172,11 @@ class ExternalApiTemplateApi(Resource):
     @setup_required
     @login_required
     @account_initialization_required
+    @api.doc("delete_external_api_template")
+    @api.doc(description="Delete an external knowledge API template")
+    @api.doc(params={"external_knowledge_api_id": "External knowledge API ID"})
+    @api.response(204, "External knowledge API template deleted successfully")
+    @api.response(403, "Permission denied")
     def delete(self, external_knowledge_api_id):
         external_knowledge_api_id = str(external_knowledge_api_id)
 

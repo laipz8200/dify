@@ -18,6 +18,19 @@ class ImagePreviewApi(Resource):
     Deprecated
     """
 
+    @files_ns.doc("preview_image_deprecated")
+    @files_ns.doc(description="Preview an image file using the legacy signed URL flow")
+    @files_ns.doc(
+        params={
+            "file_id": "File ID",
+            "timestamp": "Signature timestamp",
+            "nonce": "Signature nonce",
+            "sign": "HMAC signature for validation",
+        }
+    )
+    @files_ns.response(200, "Image streamed successfully")
+    @files_ns.response(400, "Missing signature parameters")
+    @files_ns.response(404, "File not found")
     def get(self, file_id):
         file_id = str(file_id)
 
@@ -43,6 +56,20 @@ class ImagePreviewApi(Resource):
 
 @files_ns.route("/<uuid:file_id>/file-preview")
 class FilePreviewApi(Resource):
+    @files_ns.doc("preview_file")
+    @files_ns.doc(description="Preview or download an uploaded file using a signed URL")
+    @files_ns.doc(
+        params={
+            "file_id": "File ID",
+            "timestamp": "Signature timestamp",
+            "nonce": "Signature nonce",
+            "sign": "HMAC signature for validation",
+            "as_attachment": "Return the file as an attachment when true",
+        }
+    )
+    @files_ns.response(200, "File streamed successfully")
+    @files_ns.response(400, "Missing signature parameters")
+    @files_ns.response(404, "File not found")
     def get(self, file_id):
         file_id = str(file_id)
 

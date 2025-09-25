@@ -644,6 +644,26 @@ class PublishedWorkflowApi(Resource):
     @login_required
     @account_initialization_required
     @get_app_model(mode=[AppMode.ADVANCED_CHAT, AppMode.WORKFLOW])
+    @api.doc("publish_workflow")
+    @api.doc(description="Publish the current draft workflow for an application")
+    @api.doc(params={"app_id": "Application ID"})
+    @api.expect(
+        api.model(
+            "PublishWorkflowRequest",
+            {
+                "marked_name": fields.String(
+                    description="Optional label for the published workflow (maximum 20 characters)"
+                ),
+                "marked_comment": fields.String(
+                    description="Optional comment describing the published workflow version (maximum 100 characters)"
+                ),
+            },
+        ),
+        validate=False,
+    )
+    @api.response(200, "Workflow published successfully")
+    @api.response(400, "Invalid request payload")
+    @api.response(403, "Permission denied")
     def post(self, app_model: App):
         """
         Publish workflow
@@ -948,6 +968,13 @@ class WorkflowByIdApi(Resource):
     @login_required
     @account_initialization_required
     @get_app_model(mode=[AppMode.ADVANCED_CHAT, AppMode.WORKFLOW])
+    @api.doc("delete_workflow")
+    @api.doc(description="Delete a published workflow by ID")
+    @api.doc(params={"app_id": "Application ID", "workflow_id": "Workflow ID"})
+    @api.response(204, "Workflow deleted successfully")
+    @api.response(400, "Workflow cannot be deleted or is in use")
+    @api.response(403, "Permission denied")
+    @api.response(404, "Workflow not found")
     def delete(self, app_model: App, workflow_id: str):
         """
         Delete workflow

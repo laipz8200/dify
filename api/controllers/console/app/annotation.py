@@ -213,6 +213,19 @@ class AnnotationApi(Resource):
     @setup_required
     @login_required
     @account_initialization_required
+    @api.doc("delete_annotations")
+    @api.doc(
+        description="Delete annotations in batch by ID or clear all annotations when no IDs are provided."
+    )
+    @api.doc(
+        params={
+            "app_id": "Application ID",
+            "annotation_id": "Annotation ID to delete (can be repeated to delete multiple)",
+        }
+    )
+    @api.response(204, "Annotations deleted successfully")
+    @api.response(400, "annotation_ids are required when the parameter is provided")
+    @api.response(403, "Insufficient permissions")
     def delete(self, app_id):
         if not current_user.is_editor:
             raise Forbidden()
@@ -288,6 +301,11 @@ class AnnotationUpdateDeleteApi(Resource):
     @setup_required
     @login_required
     @account_initialization_required
+    @api.doc("delete_annotation")
+    @api.doc(description="Delete a specific annotation by ID")
+    @api.doc(params={"app_id": "Application ID", "annotation_id": "Annotation ID"})
+    @api.response(204, "Annotation deleted successfully")
+    @api.response(403, "Insufficient permissions")
     def delete(self, app_id, annotation_id):
         if not current_user.is_editor:
             raise Forbidden()
